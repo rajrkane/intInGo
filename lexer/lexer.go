@@ -52,7 +52,7 @@ func (l *Lexer) NextToken() token.Token {
 	switch l.ch {
 		case '=':
 			if l.peekChar() == '=' {
-				// don't lose current character
+					// don't lose current character
 					ch := l.ch
 					l.readChar()
 					literal := string(ch) + string(l.ch)
