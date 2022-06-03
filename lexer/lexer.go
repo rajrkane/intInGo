@@ -5,10 +5,10 @@ package lexer
 import "intInGo/token"
 
 type Lexer struct {
-	input			string
-	position		int		// point to current char in input
+	input					string
+	position			int		// point to current char in input
 	readPosition	int		// current reading position (after position)
-	ch				byte	// current char -- supports ASCII (not UTF-8)
+	ch						byte	// current char -- supports ASCII (not UTF-8)
 }
 
 // create a new Lexer
@@ -28,10 +28,10 @@ func (l *Lexer) readChar() {
 		// set current character to next character
 		l.ch = l.input[l.readPosition]
 	}
-	
+
 	// update positions
 	l.position = l.readPosition
-	l.readPosition += 1	
+	l.readPosition += 1
 }
 
 // return token depending on currently examined character
@@ -43,6 +43,20 @@ func (l *Lexer) NextToken() token.Token {
 	switch l.ch {
 		case '=':
 			tok = newToken(token.ASSIGN, l.ch)
+		case '+':
+			tok = newToken(token.PLUS, l.ch)
+		case '-':
+			tok = newToken(token.MINUS, l.ch)
+		case '/':
+			tok = newToken(token.SLASH, l.ch)
+		case '*':
+			tok = newToken(token.ASTERISK, l.ch)
+		case '!':
+			tok = newToken(token.BANG, l.ch)
+		case '<':
+			tok = newToken(token.LT, l.ch)
+		case '>':
+			tok = newToken(token.GT, l.ch)
 		case ';':
 			tok = newToken(token.SEMICOLON, l.ch)
 		case '(':
@@ -51,8 +65,6 @@ func (l *Lexer) NextToken() token.Token {
 			tok = newToken(token.RPAREN, l.ch)
 		case ',':
 			tok = newToken(token.COMMA, l.ch)
-		case '+':
-			tok = newToken(token.PLUS, l.ch)
 		case '{':
 			tok = newToken(token.LBRACE, l.ch)
 		case '}':
