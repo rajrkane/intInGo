@@ -6,16 +6,21 @@ import (
   "intInGo/ast"
   "intInGo/lexer"
   "intInGo/token"
+  "fmt"
 )
 
 type Parser struct {
   l *lexer.Lexer        // ptr to instance of lexer
+  errors []string
   curToken  token.Token // point to current token
   peekToken token.Token // point to next token
 }
 
 func New(l *lexer.Lexer) *Parser {
-  p := &Parser{l: l}
+  p := &Parser{
+    l: l,
+    errors: []string{},
+  }
 
   // read two tokens
   p.nextToken()
@@ -103,6 +108,18 @@ func (p *Parser) expectPeek(t token.TokenType) bool {
     p.nextToken()
     return true
   } else {
+    // add an error every time an expectation about the next token was wrong
+    p.peekError(t)
     return false
   }
+}
+
+func (p *Parser) Errors() []string {
+  return p.errors
+}
+
+// add error if type of peekToken doesn't match expectation
+func (p *Parser) peekError(t token.TokenType) {
+  msg := fmt.Sprintf("expected next token to be %s, got %s", t, p.peekToken.Type)
+  p.errors = append(p.errors, msg)
 }
