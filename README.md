@@ -6,4 +6,4 @@ Let me page the [Go Gopher](https://github.com/egonelbre/gophers) to pull up Vim
 
 ![vim-go](https://github.com/egonelbre/gophers/blob/master/vector/projects/vim-go.svg)
 
-Now, ahead and onwards!
+Now, onwards!
