@@ -2,10 +2,14 @@
 
 package ast
 
-import "intInGo/token"
+import (
+  "intInGo/token"
+  "bytes"
+)
 
 type Node interface {
-  TokenLiteral() string // literal of associated token
+  TokenLiteral()  string // literal of associated token
+  String()        string // print node for debugging
 }
 // some nodes implement statement interface
 type Statement interface {
@@ -22,6 +26,15 @@ type Expression interface {
 type Program struct {
   Statements []Statement
 }
+func (p *Program) String() string {
+  // write return value of each statement's String() to a buffer
+  var out bytes.Buffer
+  for _, s := p.Statements {
+    out.WriteString(s.String())
+  }
+  // return buffer as string
+  return out.String()
+}
 func (p *Program) TokenLiteral() string {
   if len(p.Statements) > 0 {
     return p.Statements[0].TokenLiteral()
@@ -37,6 +50,7 @@ type Identifier struct {
 }
 func (i *Identifier) expressionNode() {/* TODO */}
 func (i *Identifier) TokenLiteral() string {return i.Token.Literal}
+func (i *Identifier) String() string {return i.Value}
 
 // node for let statement (let x = 5)
 type LetStatement struct {
@@ -46,6 +60,18 @@ type LetStatement struct {
 }
 func (ls *LetStatement) statementNode() {/* TODO */}
 func (ls *LetStatement) TokenLiteral() string {return ls.Token.Literal}
+// print the let statement nicely
+func (ls *LetStatement) String() string {
+  var out bytes.Buffer
+  out.WriteString(ls.TokenLiteral() + " ")
+  out.WriteString(ls.Name.String())
+  out.WriteString(" = ")
+  if ls.Value != nil {
+    out.WriteString(ls.Value.String())
+  }
+  out.WriteString(";")
+  return out.String()
+}
 
 // node for return statement
 type ReturnStatement struct {
@@ -54,3 +80,28 @@ type ReturnStatement struct {
 }
 func (rs *ReturnStatement) statementNode() {/* TODO */}
 func (rs *ReturnStatement) TokenLiteral() string {return rs.Token.Literal}
+// print the return statement nicely
+func (rs *ReturnStatement) String() string {
+  var out bytes.Buffer
+  out.WriteString(rs.TokenLiteral() + " ")
+  if rs.ReturnValue != nil {
+    out.WriteString(rs.ReturnValue.String())
+  }
+  out.WriteString(";")
+  return out.String()
+}
+
+// node for expression statement (x + 5;)
+type ExpressionStatement struct {
+  Token       token.Token // first token of expression
+  Expression  Expression
+}
+func (es *ExpressionStatement) statementNode() {}
+func (es *ExpressionStatement) TokenLiteral() string {return es.Token.Literal}
+// print expressiont statement nicely
+func (es *ExpressionStatement) String() string {
+  if es.Expression != nil {
+    return es.Expression.String()
+  }
+  return ""
+}

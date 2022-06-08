@@ -12,8 +12,13 @@ import (
 type Parser struct {
   l *lexer.Lexer        // ptr to instance of lexer
   errors []string
+
   curToken  token.Token // point to current token
   peekToken token.Token // point to next token
+
+  // used to check if a prefix or infix fn is associated with curToken.Type
+  prefixParseFns  map[token.TokenType]prefixParseFn
+  infixParseFns   map[token.TokenType]infixParseFn
 }
 
 func New(l *lexer.Lexer) *Parser {
@@ -140,3 +145,18 @@ func (p *Parser) peekError(t token.TokenType) {
   msg := fmt.Sprintf("expected next token to be %s, got %s", t, p.peekToken.Type)
   p.errors = append(p.errors, msg)
 }
+
+// add entries to parser function maps
+func (p *Parser) registerPrefix(tokenType token.TokenType, fn prefixParseFn) {
+  p.prefixParseFns[tokenType] = fn
+}
+func (p *Parser) registeInfix(tokenType token.TokenType, fn infixParseFn) {
+  p.infixParseFns[tokenType] = fn
+}
+
+
+// define prefix and infix parsing functions
+type (
+  prefixParseFn func() ast.Expression // both function types return the same type
+  infixParseFn  func(ast.Expression) ast.Expression // fn(left_expression) right_expression
+)
