@@ -7,24 +7,21 @@ import "intInGo/token"
 type Node interface {
   TokenLiteral() string // literal of associated token
 }
-
 // some nodes implement statement interface
 type Statement interface {
   Node
   statementNode()
 }
-
 // other nodes implement expression interface
 type Expression interface {
   Node
   expressionNode()
 }
 
-// root node of every AST
+// program is root node of every AST
 type Program struct {
   Statements []Statement
 }
-
 func (p *Program) TokenLiteral() string {
   if len(p.Statements) > 0 {
     return p.Statements[0].TokenLiteral()
@@ -33,31 +30,27 @@ func (p *Program) TokenLiteral() string {
   }
 }
 
-// node for let statement (let x = 5)
-type LetStatement struct {
-  Token token.Token // token.LET
-  Name *Identifier  // identifier of the binding (x)
-  Value Expression  // expression producing the value (5)
-}
-
-func (ls *LetStatement) statementNode() {
-
-}
-
-func (ls *LetStatement) TokenLiteral() string {
-  return ls.Token.Literal
-}
-
 // identifier (x) of a binding (let x = 5)
 type Identifier struct {
   Token token.Token // token.IDENT
   Value string
 }
+func (i *Identifier) expressionNode() {/* TODO */}
+func (i *Identifier) TokenLiteral() string {return i.Token.Literal}
 
-func (i *Identifier) expressionNode() {
-
+// node for let statement (let x = 5)
+type LetStatement struct {
+  Token token.Token // token.LET
+  Name  *Identifier  // identifier of the binding (x)
+  Value Expression  // expression producing the value (5)
 }
+func (ls *LetStatement) statementNode() {/* TODO */}
+func (ls *LetStatement) TokenLiteral() string {return ls.Token.Literal}
 
-func (i *Identifier) TokenLiteral() string {
-  return i.Token.Literal
+// node for return statement
+type ReturnStatement struct {
+  Token       token.Token // token.RETURN
+  ReturnValue Expression  // return value
 }
+func (rs *ReturnStatement) statementNode() {/* TODO */}
+func (rs *ReturnStatement) TokenLiteral() string {return rs.Token.Literal}

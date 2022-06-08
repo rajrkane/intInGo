@@ -11,18 +11,20 @@ import (
 func TestLetStatements(t *testing.T) {
 
   // test case
-  // input := `
-  //   let x = 5;
-  //   let y = 10;
-  //   let foobar = 8822813;
-  // `
+  input := `
+    let x = 5;
+    let y = 10;
+    let foobar = 8822813;
+  `
 
   // invalid test case
-  input := `
-    let x 5;
-    let = 10;
-    let 8383882;
-  `
+  // input := `
+  //   let x 5;
+  //   let = 10;
+  //   let 8383882;
+  // `
+
+  // TODO: look at more parser tests
 
   // initialize new lexer, parser
   l := lexer.New(input)
@@ -53,10 +55,8 @@ func TestLetStatements(t *testing.T) {
     }
   }
 }
-
 // check as many fields of an AST node as possible
 func testLetStatement(t *testing.T, stmt ast.Statement, name string) bool {
-  // test if let statement
   if stmt.TokenLiteral() != "let" {
     t.Errorf("stmt.TokenLiteral not 'let', got=%q", stmt.TokenLiteral())
     return false
@@ -78,6 +78,34 @@ func testLetStatement(t *testing.T, stmt ast.Statement, name string) bool {
   }
 
   return true
+}
+
+func TestReturnStatements(t *testing.T) {
+  input := `
+    return 5;
+    return 10;
+    return 999293;
+  `
+
+  l := lexer.New(input)
+  p := New(l)
+
+  program := p.ParseProgram()
+  checkParserErrors(t, p)
+  if len(program.Statements) != 3 {
+    t.Fatalf("program expects 3 statements, got=%d", len(program.Statements))
+  }
+
+  for _, stmt := range program.Statements {
+    returnStmt, ok := stmt.(*ast.ReturnStatement)
+    if !ok {
+      t.Errorf("stmt not *ast.ReturnStatement. got=%T", stmt)
+      continue
+    }
+    if returnStmt.TokenLiteral() != "return" {
+      t.Errorf("returnStmt.TokenLiteral not 'return', got %q", returnStmt.TokenLiteral())
+    }
+  }
 }
 
 // print any parser errors
