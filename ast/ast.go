@@ -29,7 +29,7 @@ type Program struct {
 func (p *Program) String() string {
   // write return value of each statement's String() to a buffer
   var out bytes.Buffer
-  for _, s := p.Statements {
+  for _, s := range p.Statements {
     out.WriteString(s.String())
   }
   // return buffer as string

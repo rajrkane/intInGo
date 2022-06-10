@@ -27,6 +27,10 @@ func New(l *lexer.Lexer) *Parser {
     errors: []string{},
   }
 
+	// initialize prefix parsing functions map
+	p.prefixParseFns = make(map[token.TokenType]prefixParseFn)
+	p.registerPrefix(token.IDENT, p.parseIdentifier)
+
   // read two tokens
   p.nextToken()
   p.nextToken()
@@ -70,7 +74,7 @@ func (p *Parser) parseStatement() ast.Statement {
   case token.RETURN:
     return p.parseReturnStatement()
   default:
-    return nil
+    return p.parseExpressionStatement()
   }
 }
 
@@ -113,6 +117,34 @@ func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
   }
 
   return stmt
+}
+
+func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
+	stmt := &ast.ExpressionStatement{Token: p.curToken}
+	stmt.Expression = p.parseExpression(LOWEST)
+	
+	// expressions have optional semicolons
+	if p.peekTokenIs(token.SEMICOLON) {
+		p.nextToken()
+	}
+
+	return stmt
+}
+func (p *Parser) parseExpression(precedence int) ast.Expression {
+	// check if there's a parsing fn associated with current token type in prefix position
+	prefix := p.prefixParseFns[p.curToken.Type]
+	if prefix == nil {
+		return nil
+	}
+	// if so, call it
+	leftExp := prefix()
+	return leftExp
+}
+
+
+// return an identifier for current token
+func (p *Parser) parseIdentifier() ast.Expression {
+	return &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
 }
 
 func (p *Parser) curTokenIs(t token.TokenType) bool {
@@ -159,4 +191,16 @@ func (p *Parser) registeInfix(tokenType token.TokenType, fn infixParseFn) {
 type (
   prefixParseFn func() ast.Expression // both function types return the same type
   infixParseFn  func(ast.Expression) ast.Expression // fn(left_expression) right_expression
+)
+
+// operator precedences (increasing order)
+const (
+	_ int = iota // iota gives these constants incrementing numbers as values
+	LOWEST
+	EQUALS			// ==
+	LESSGREATER	// >, <
+	SUM					// +
+	PRODUCT			// *
+	PREFIX			// -x, !x, etc.
+	CALL				// func(X)
 )
