@@ -7,6 +7,7 @@ import (
   "intInGo/lexer"
   "intInGo/token"
   "fmt"
+	"strconv"
 )
 
 type Parser struct {
@@ -30,6 +31,7 @@ func New(l *lexer.Lexer) *Parser {
 	// initialize prefix parsing functions map
 	p.prefixParseFns = make(map[token.TokenType]prefixParseFn)
 	p.registerPrefix(token.IDENT, p.parseIdentifier)
+	p.registerPrefix(token.INT, p.parseIntegerLiteral)
 
   // read two tokens
   p.nextToken()
@@ -141,6 +143,21 @@ func (p *Parser) parseExpression(precedence int) ast.Expression {
 	return leftExp
 }
 
+func (p *Parser) parseIntegerLiteral() ast.Expression {
+	lit := &ast.IntegerLiteral{Token: p.curToken}
+	
+	// convert string in current token literal to an int64
+	value, err := strconv.ParseInt(p.curToken.Literal, 0, 64)
+	if err != nil {
+		msg := fmt.Sprintf("could not parse %q as integer", p.curToken.Literal)
+		p.errors = append(p.errors, msg)
+		return nil
+	}
+
+	lit.Value = value
+
+	return lit
+}
 
 // return an identifier for current token
 func (p *Parser) parseIdentifier() ast.Expression {
@@ -185,7 +202,6 @@ func (p *Parser) registerPrefix(tokenType token.TokenType, fn prefixParseFn) {
 func (p *Parser) registeInfix(tokenType token.TokenType, fn infixParseFn) {
   p.infixParseFns[tokenType] = fn
 }
-
 
 // define prefix and infix parsing functions
 type (
