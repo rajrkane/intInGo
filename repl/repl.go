@@ -3,34 +3,62 @@
 package repl
 
 import (
-  "bufio"
-  "fmt"
-  "io"
-  "intInGo/lexer"
-  "intInGo/token"
+	"bufio"
+	"fmt"
+	"intInGo/lexer"
+	"intInGo/parser"
+	"io"
 )
 
 const PROMPT = ">>"
 
 func Start(in io.Reader, out io.Writer) {
-  scanner := bufio.NewScanner(in)
+	scanner := bufio.NewScanner(in)
 
-  for {
-    fmt.Fprintf(out, PROMPT)
+	for {
+		fmt.Fprintf(out, PROMPT)
 
-    // read from input source until hitting newline
-    scanned := scanner.Scan()
-    if !scanned {
-      return
-    }
+		// read from input source until hitting newline
+		scanned := scanner.Scan()
+		if !scanned {
+			return
+		}
 
-    // instantiate lexer with just read line
-    line := scanner.Text()
-    l := lexer.New(line)
+		// instantiate lexer with just read line
+		line := scanner.Text()
+		l := lexer.New(line)
 
-    // print all tokens from lexer until hitting EOF
-    for tok := l.NextToken(); tok.Type != token.EOF; tok = l.NextToken() {
-      fmt.Fprintf(out, "%+v\n", tok)
-    }
-  }
+		// parse that line
+		p := parser.New(l)
+		program := p.ParseProgram()
+		if len(p.Errors()) != 0 {
+			printParserErrors(out, p.Errors())
+			continue
+		}
+
+		io.WriteString(out, program.String())
+		io.WriteString(out, "\n")
+	}
 }
+
+func printParserErrors(out io.Writer, errors []string) {
+	io.WriteString(out, MONKE)
+	io.WriteString(out, "We ran into some monkey business here!\n")
+	io.WriteString(out, " parser errors:\n")
+	for _, msg := range errors {
+		io.WriteString(out, "\t"+msg+"\n")
+	}
+}
+
+const MONKE = `            __,__
+   .--.  .-"     "-.  .--.
+  / .. \/  .-. .-.  \/ .. \
+ | |  '|  /   Y   \  |'  | |
+ | \   \  \ 0 | 0 /  /   / |
+  \ '- ,\.-"""""""-./, -' /
+   ''-' /_   ^ ^   _\ '-''
+       |  \._   _./  |
+       \   \ '~' /   /
+        '._ '-=-' _.'
+           '-----'
+`
