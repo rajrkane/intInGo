@@ -49,6 +49,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerInfix(token.NOT_EQ, p.parseInfixExpression)
 	p.registerInfix(token.LT, p.parseInfixExpression)
 	p.registerInfix(token.GT, p.parseInfixExpression)
+	p.registerInfix(token.LPAREN, p.parseCallExpression)
 
 	// read two tokens
 	p.nextToken()
@@ -56,6 +57,44 @@ func New(l *lexer.Lexer) *Parser {
 
 	return p
 }
+
+// get precedence associated with type of peek token
+func (p *Parser) peekPrecedence() int {
+	if p, ok := precedences[p.peekToken.Type]; ok {
+		return p
+	}
+	return LOWEST
+}
+func (p *Parser) curPrecedence() int {
+	if p, ok := precedences[p.curToken.Type]; ok {
+		return p
+	}
+	return LOWEST
+}
+
+// operator precedences (increasing order)
+var precedences = map[token.TokenType]int{
+	token.EQ:       EQUALS,
+	token.NOT_EQ:   EQUALS,
+	token.LT:       LESSGREATER,
+	token.GT:       LESSGREATER,
+	token.PLUS:     SUM,
+	token.MINUS:    SUM,
+	token.SLASH:    PRODUCT,
+	token.ASTERISK: PRODUCT,
+	token.LPAREN:   CALL,
+}
+
+const (
+	_ int = iota // iota gives these constants incrementing numbers as values
+	LOWEST
+	EQUALS      // ==
+	LESSGREATER // >, <
+	SUM         // +
+	PRODUCT     // *
+	PREFIX      // -x, !x, etc.
+	CALL        // func(X)
+)
 
 // advance both current and next tokens
 func (p *Parser) nextToken() {
@@ -118,7 +157,7 @@ func (p *Parser) parseLetStatement() *ast.LetStatement {
 	stmt.Value = p.parseExpression(LOWEST)
 
 	// advance until end of statement
-	for !p.curTokenIs(token.SEMICOLON) {
+	if p.peekTokenIs(token.SEMICOLON) {
 		p.nextToken()
 	}
 
@@ -133,7 +172,7 @@ func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
 
 	stmt.ReturnValue = p.parseExpression(LOWEST)
 
-	if p.curTokenIs(token.SEMICOLON) {
+	if p.peekTokenIs(token.SEMICOLON) {
 		p.nextToken()
 	}
 
@@ -240,6 +279,35 @@ func (p *Parser) parseIfExpression() ast.Expression {
 	}
 
 	return expression
+}
+
+func (p *Parser) parseCallExpression(function ast.Expression) ast.Expression {
+	exp := &ast.CallExpression{Token: p.curToken, Function: function}
+	exp.Arguments = p.parseCallArguments()
+	return exp
+}
+
+func (p *Parser) parseCallArguments() []ast.Expression {
+	args := []ast.Expression{}
+	if p.peekTokenIs(token.RPAREN) {
+		p.nextToken()
+		return args
+	}
+
+	p.nextToken()
+	args = append(args, p.parseExpression(LOWEST))
+
+	for p.peekTokenIs(token.COMMA) {
+		p.nextToken()
+		p.nextToken()
+		args = append(args, p.parseExpression(LOWEST))
+	}
+
+	if !p.expectPeek(token.RPAREN) {
+		return nil
+	}
+
+	return args
 }
 
 func (p *Parser) noPrefixParseFnError(t token.TokenType) {
@@ -393,41 +461,4 @@ func (p *Parser) registerInfix(tokenType token.TokenType, fn infixParseFn) {
 type (
 	prefixParseFn func() ast.Expression               // both function types return the same type
 	infixParseFn  func(ast.Expression) ast.Expression // fn(left_expression) right_expression
-)
-
-// get precedence associated with type of peek token
-func (p *Parser) peekPrecedence() int {
-	if p, ok := precedences[p.peekToken.Type]; ok {
-		return p
-	}
-	return LOWEST
-}
-func (p *Parser) curPrecedence() int {
-	if p, ok := precedences[p.curToken.Type]; ok {
-		return p
-	}
-	return LOWEST
-}
-
-// operator precedences (increasing order)
-var precedences = map[token.TokenType]int{
-	token.EQ:       EQUALS,
-	token.NOT_EQ:   EQUALS,
-	token.LT:       LESSGREATER,
-	token.GT:       LESSGREATER,
-	token.PLUS:     SUM,
-	token.MINUS:    SUM,
-	token.SLASH:    PRODUCT,
-	token.ASTERISK: PRODUCT,
-}
-
-const (
-	_ int = iota // iota gives these constants incrementing numbers as values
-	LOWEST
-	EQUALS      // ==
-	LESSGREATER // >, <
-	SUM         // +
-	PRODUCT     // *
-	PREFIX      // -x, !x, etc.
-	CALL        // func(X)
 )
