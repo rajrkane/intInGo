@@ -1,6 +1,23 @@
 # intIngo
 
-I am working through [Thorsten Ball](https://github.com/mrnugget)'s books ([1](https://interpreterbook.com/) and [2](https://compilerbook.com/)) to build an interpreter and a compiler in Go for the toy Monkey programming language. In doing so, my goals are to become a better Go programmer and to better understand the ins and outs of the compilation process.
+I am working through [Thorsten Ball](https://github.com/mrnugget)'s books ([1](https://interpreterbook.com/) and [2](https://compilerbook.com/)) to build an interpreter and a compiler in **Go** for the toy **Monkey** programming language.
+
+```
+            __,__
+   .--.  .-"     "-.  .--.
+  / .. \/  .-. .-.  \/ .. \
+ | |  '|  /   Y   \  |'  | |
+ | \   \  \ 0 | 0 /  /   / |
+  \ '- ,\.-"""""""-./, -' /
+   ''-' /_   ^ ^   _\ '-''
+       |  \._   _./  |
+       \   \ '~' /   /
+        '._ '-=-' _.'
+           '-----'
+
+```
+
+In doing so, my goals are to become a better Go programmer and to better understand the ins and outs of the compilation process.
 
 Let me page the [Go Gopher](https://github.com/egonelbre/gophers) to pull up Vim...
 
