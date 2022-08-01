@@ -96,6 +96,9 @@ func (l *Lexer) NextToken() token.Token {
 	case 0:
 		tok.Literal = ""
 		tok.Type = token.EOF
+	case '"':
+		tok.Type = token.STRING
+		tok.Literal = l.readString()
 	default:
 		// if reading letter, read rest of ident/keyword until non-letter
 		if isLetter(l.ch) {
@@ -115,6 +118,17 @@ func (l *Lexer) NextToken() token.Token {
 	// advance pointers into input
 	l.readChar()
 	return tok
+}
+
+func (l *Lexer) readString() string {
+	position := l.position + 1
+	for {
+		l.readChar()
+		if l.ch == '"' || l.ch == 0 {
+			break
+		}
+	}
+	return l.input[position:l.position]
 }
 
 // read identifier and advance lexer position until non-digit encountered

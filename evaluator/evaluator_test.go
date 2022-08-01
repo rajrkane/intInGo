@@ -99,6 +99,32 @@ func testEval(input string) object.Object {
 	return Eval(program, env)
 }
 
+func TestStringLiteral(t *testing.T) {
+	input := `"Hello World!"`
+	evaluated := testEval(input)
+	str, ok := evaluated.(*object.String)
+	if !ok {
+		t.Fatalf("object is not String. got=%T (%+v)", evaluated, evaluated)
+	}
+
+	if str.Value != "Hello World!" {
+		t.Errorf("String has wrong value. got=%q", str.Value)
+	}
+}
+
+func TestStringConcatenation(t *testing.T) {
+	input := `"Hello" + " " + "World!"`
+	evaluated := testEval(input)
+	str, ok := evaluated.(*object.String)
+	if !ok {
+		t.Fatalf("object is not String. got=%T (%+v)", evaluated, evaluated)
+	}
+
+	if str.Value != "Hello World!" {
+		t.Errorf("String has wrong value. got=%q", str.Value)
+	}
+}
+
 func TestFunctionObject(t *testing.T) {
 	input := "fn(x) { x + 2; };"
 
@@ -130,7 +156,7 @@ func TestFunctionApplication(t *testing.T) {
 	}{
 		{"let identity = fn(x) { x; }; identity(5);", 5},
 		{"let double = fn(x) { x * 2; }; double(5);", 10},
-		{"let add = fn(x, y) { x, y; }; add(5, 7);", 12},
+		{"let add = fn(x, y) { x + y; }; add(5, 7);", 12},
 		{"fn(x) { x; }(5);", 5},
 	}
 
@@ -280,6 +306,10 @@ if (10 > 1) {
 		{
 			"foobar",
 			"identifier not found: foobar",
+		},
+		{
+			`"Hello" - "World"`,
+			"unknown operator: STRING - STRING",
 		},
 	}
 
